@@ -13,7 +13,7 @@ setuptools.setup(
     long_description = readme,
     author = "Ted Drain",
     author_email = '',
-    url = 'https://github.com/TD22057/insteon-mqtt',
+    url = 'https://github.com/chach17/insteon-mqtt.git',
     packages = setuptools.find_packages(exclude=["tests*"]),
     scripts = ['scripts/insteon-mqtt'],
     include_package_data = True,
