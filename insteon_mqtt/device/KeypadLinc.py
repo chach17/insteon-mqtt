@@ -616,7 +616,7 @@ class KeypadLinc(Base):
         unknown = set(kwargs.keys()).difference(flags)
         if unknown:
             raise Exception("Unknown KeypadLinc flags input: %s.\n Valid "
-                            "flags are: %s" % unknown, flags)
+                            "flags are: %s", unknown, flags)
 
         # Start a command sequence so we can call the flag methods in series.
         seq = CommandSeq(self.protocol, "KeypadLinc set_flags complete",
@@ -654,7 +654,7 @@ class KeypadLinc(Base):
             on_done(False, "Backlight level failed", None)
             
     #-----------------------------------------------------------------------
-    def handle_detach_load(self, msg, on_done):
+    def on_detach_load(self, msg, on_done):
         """Callback for handling detach_load() responses.
 
         This is called when we get a response to the detach_load() command.
