@@ -563,6 +563,29 @@ class KeypadLinc(Base):
         msg_handler = handler.StandardCmd(msg, self.handle_on_level, on_done)
 
         self.send(msg, msg_handler)
+    
+    #-----------------------------------------------------------------------
+    def detach_load(self, on_done=None):
+        """Detach the load from group 1.
+
+        This detaches the load from group 1 of the KeypadLinc.  The load moves
+        to group 9.  The All On/Off button can be controlled via group 1.
+
+        The default factory level is 0x1a (Load Attached).
+
+        Args:
+          on_done: Finished callback.  This is called when the command has
+                   completed.  Signature is: on_done(success, msg, data)
+        """
+        LOG.info("KeypadLinc %s detaching load", self.label)
+
+        msg = Msg.OutStandard.direct(self.addr, 0x20, 0x1b)
+
+        # Use the standard command handler which will notify us when the
+        # command is ACK'ed.
+        msg_handler = handler.StandardCmd(msg, self.handle_detach_load, on_done)
+        self.send(msg, msg_handler)
+
 
     #-----------------------------------------------------------------------
     def set_flags(self, on_done, **kwargs):
@@ -588,6 +611,7 @@ class KeypadLinc(Base):
         # passed in.
         FLAG_BACKLIGHT = "backlight"
         FLAG_ON_LEVEL = "on_level"
+        FLAG_DETACH_LOAD = "detach_load"
         flags = set([FLAG_BACKLIGHT, FLAG_ON_LEVEL])
         unknown = set(kwargs.keys()).difference(flags)
         if unknown:
@@ -605,6 +629,9 @@ class KeypadLinc(Base):
         if FLAG_ON_LEVEL in kwargs:
             on_level = util.input_byte(kwargs, FLAG_ON_LEVEL)
             seq.add(self.set_on_level, on_level)
+            
+        if FLAG_DETACH_LOAD in kwargs:
+        	seq.add(self.detach_load, on_detach_load)
 
         seq.run()
 
@@ -625,6 +652,24 @@ class KeypadLinc(Base):
             on_done(True, "Backlight level updated", None)
         else:
             on_done(False, "Backlight level failed", None)
+            
+    #-----------------------------------------------------------------------
+    def handle_detach_load(self, msg, on_done):
+        """Callback for handling detach_load() responses.
+
+        This is called when we get a response to the detach_load() command.
+        We don't need to do anything - just call the on_done callback with
+        the status.
+
+        Args:
+          msg (InpStandard):  The response message from the command.
+          on_done: Finished callback.  This is called when the command has
+                   completed.  Signature is: on_done(success, msg, data)
+        """
+        if msg.flags.type == Msg.Flags.Type.DIRECT_ACK:
+            on_done(True, "Load Detached", None)
+        else:
+            on_done(False, "Failed to Detach Load", None)
 
     #-----------------------------------------------------------------------
     def handle_on_level(self, msg, on_done):
